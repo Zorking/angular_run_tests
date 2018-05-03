@@ -24,9 +24,7 @@ def setup_git():
 def is_failed(subprocess_stdout, fail_text, success_text):
     while True:
         line = subprocess_stdout.stdout.readline().decode("utf-8")
-        print(line)
         if fail_text in line:
-
             return True
         if success_text in line:
             return False
