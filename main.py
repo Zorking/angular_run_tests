@@ -1,6 +1,8 @@
 import logging
 import subprocess
 
+import requests
+
 import settings
 
 logging.basicConfig(filename=settings.LOG_FILE, level=logging.ERROR, format='[%(asctime)s] %(message)s')
@@ -46,7 +48,13 @@ def run_build():
 
 
 if __name__ == "__main__":
-    for branch in settings.BRANCHES:
-        setup_git()
-        run_tests()
-        run_build()
+    params = {'private_token': settings.GITLAB_TOKEN, 'state': 'opened'}
+    url = '{}projects/{}/merge_requests'.format(settings.GITLAB_URL, settings.GITLAB_PROJECT_ID)
+    merge_requests = requests.get(url, params=params).json()
+    for merge_request in merge_requests:
+        if merge_request.get('work_in_progress'):
+            branch = merge_request.get('source_branch')
+            setup_git()
+            run_tests()
+            logging.info("Tests")
+            run_build()
