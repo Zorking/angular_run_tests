@@ -32,14 +32,15 @@ def is_failed(subprocess_stdout, fail_text, success_text):
 
 def run_tests():
     npm_test = subprocess.Popen('npm test --single-run=true', shell=True, cwd=settings.DIR, stdout=subprocess.PIPE)
-    if is_failed(npm_test, '✖', 'SUMMARY:'):
+    if is_failed(subprocess_stdout=npm_test, fail_text='✖', success_text='SUMMARY:'):
         logging.error('Tests failed for: {}'.format(branch))
     npm_test.kill()
 
 
 def run_build():
-    npm_serve = subprocess.Popen('npm start', shell=True, cwd=settings.DIR, stdout=subprocess.PIPE)
-    if is_failed(npm_serve, 'Failed to compile', 'Compiled successfully'):
+    npm_serve = subprocess.Popen('npm run-script build', shell=True, cwd=settings.DIR)
+    npm_serve.wait()
+    if npm_serve.returncode == 1:
         logging.error('Build failed for: {}'.format(branch))
     npm_serve.kill()
 
