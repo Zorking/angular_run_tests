@@ -32,11 +32,14 @@ def is_failed(subprocess_stdout, fail_text, success_text):
             return False
 
 
-def run_tests():
-    npm_test = subprocess.Popen('npm test --single-run=true', shell=True, cwd=settings.DIR, stdout=subprocess.PIPE)
-    if is_failed(subprocess_stdout=npm_test, fail_text='✖', success_text='SUMMARY:'):
-        logging.error('Tests failed for: {}'.format(branch))
-    npm_test.kill()
+def run_ng(command, task_type):
+    npm_serve = subprocess.Popen('node_modules/@angular/cli/bin/ng {}'.format(command), shell=True, cwd=settings.DIR)
+    npm_serve.wait()
+    return_code = npm_serve.returncode
+    if return_code == 1:
+        logging.error('{} failed for: {}'.format(task_type, branch))
+    npm_serve.kill()
+    return return_code
 
 
 def run_build():
@@ -52,9 +55,9 @@ if __name__ == "__main__":
     url = '{}projects/{}/merge_requests'.format(settings.GITLAB_URL, settings.GITLAB_PROJECT_ID)
     merge_requests = requests.get(url, params=params).json()
     for merge_request in merge_requests:
-        if merge_request.get('work_in_progress'):
-            branch = merge_request.get('source_branch')
-            setup_git()
-            run_tests()
-            logging.info("Tests")
-            run_build()
+        branch = merge_request.get('source_branch')
+        logging.error(branch)
+        setup_git()
+        tests_passed = True if run_ng(command='test --watch=false', task_type='Tests') == 0 else False
+        if tests_passed:
+            run_ng(command='build', task_type='Build')
