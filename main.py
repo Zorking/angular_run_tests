@@ -55,4 +55,3 @@ if __name__ == "__main__":
         tests_passed = True if run_ng(command='test --watch=false', task_type='Tests') == 0 else False
         if tests_passed:
             run_ng(command='build --prod --aot --base-href', task_type='Build')
-            logging.info('INFO: {} is CHECKED'.format(branch))
