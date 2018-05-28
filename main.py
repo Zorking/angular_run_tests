@@ -13,9 +13,9 @@ logging.getLogger().addHandler(logging.StreamHandler())
 FNULL = open(os.devnull, 'w')
 
 def setup_git():
-    checkout_master = subprocess.Popen(['git', 'checkout', 'master'], cwd=settings.DIR)
+    checkout_master = subprocess.Popen(['git', 'checkout', 'development'], cwd=settings.DIR)
     checkout_master.wait()
-    delete_branches_cmd = 'git branch | grep -v "master" | xargs git branch -D'
+    delete_branches_cmd = 'git branch | grep -v "development" | xargs git branch -D'
     delete_branches = subprocess.Popen(delete_branches_cmd, cwd=settings.DIR, stdout=subprocess.PIPE, shell=True)
     delete_branches.wait()
     pull = subprocess.Popen(['git', 'pull'], cwd=settings.DIR)
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     url = '{}projects/{}/merge_requests'.format(settings.GITLAB_URL, settings.GITLAB_PROJECT_ID)
     merge_requests = requests.get(url, params=params).json()
     for merge_request in merge_requests:
+        # if merge_request.get('work_in_progress'):
         branch = merge_request.get('source_branch')
         setup_git()
         tests_passed = True if run_ng(command='test --watch=false', task_type='Tests') == 0 else False
